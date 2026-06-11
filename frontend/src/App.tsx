@@ -10,16 +10,20 @@ import { Rules } from './components/Rules';
 
 const API_URL = 'http://localhost:5000/api';
 
+// Per-user localStorage key for progress data (used in offline mode)
+const getStorageKey = (user: string) => `devroad-progress-${user}`;
+
 export const App: React.FC = () => {
   // Authentication states
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+  const [isOffline, setIsOffline] = useState<boolean>(localStorage.getItem('isOffline') === 'true');
 
   // Main navigation view
   const [currentView, setCurrentView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // App Tracker States (synced with MongoDB)
+  // App Tracker States
   const [startDate, setStartDateState] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Record<string, boolean>>({});
   const [dailyLogs, setDailyLogs] = useState<Record<string, any>>({});
@@ -29,17 +33,32 @@ export const App: React.FC = () => {
   // Helper trigger to open a specific phase in Roadmap view
   const [openPhaseIndex, setOpenPhaseIndex] = useState<number | null>(null);
 
-  // Fetch state from MongoDB once authenticated
-  const fetchProgressState = async (authToken: string) => {
+  // ── Load progress (API or localStorage) ────────────────────────────────
+  const fetchProgressState = async (authToken: string, user: string, offline: boolean) => {
+    if (offline) {
+      // Load from localStorage
+      const raw = localStorage.getItem(getStorageKey(user));
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          setStartDateState(data.startDate || null);
+          setTasks(data.tasks || {});
+          setDailyLogs(data.dailyLogs || {});
+          setDsaProblems(data.dsaProblems || []);
+          setMilestones(data.milestones || {});
+        } catch {
+          console.warn('Failed to parse saved progress');
+        }
+      }
+      return;
+    }
+
+    // Try backend API
     try {
       const response = await fetch(`${API_URL}/progress`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-      if (!response.ok) {
-        throw new Error('Failed to load progress data');
-      }
+      if (!response.ok) throw new Error('Failed to load progress');
       const data = await response.json();
       setStartDateState(data.startDate);
       setTasks(data.tasks || {});
@@ -47,29 +66,32 @@ export const App: React.FC = () => {
       setDsaProblems(data.dsaProblems || []);
       setMilestones(data.milestones || {});
     } catch (error) {
-      console.error('Error fetching progress state:', error);
+      console.error('Error fetching progress:', error);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchProgressState(token);
+    if (token && username) {
+      fetchProgressState(token, username, isOffline);
     }
-  }, [token]);
+  }, [token, username, isOffline]);
 
-  const handleAuthSuccess = (newToken: string, newUsername: string) => {
+  const handleAuthSuccess = (newToken: string, newUsername: string, offline: boolean) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('username', newUsername);
+    localStorage.setItem('isOffline', offline ? 'true' : 'false');
     setToken(newToken);
     setUsername(newUsername);
+    setIsOffline(offline);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('isOffline');
     setToken(null);
     setUsername(null);
-    // Reset state
+    setIsOffline(false);
     setStartDateState(null);
     setTasks({});
     setDailyLogs({});
@@ -78,15 +100,33 @@ export const App: React.FC = () => {
     setCurrentView('dashboard');
   };
 
-  // Sync state changes to backend
-  const syncStateToBackend = async (updates: {
+  // ── Save progress (API or localStorage) ────────────────────────────────
+  const syncProgress = async (updates: {
     startDate?: string | null;
     tasks?: Record<string, boolean>;
     dailyLogs?: Record<string, any>;
     dsaProblems?: any[];
     milestones?: Record<string, boolean>;
   }) => {
-    if (!token) return;
+    if (!token || !username) return;
+
+    if (isOffline) {
+      // Save to localStorage
+      const key = getStorageKey(username);
+      const raw = localStorage.getItem(key);
+      const existing = raw ? JSON.parse(raw) : {};
+      const merged = { ...existing, ...updates };
+      localStorage.setItem(key, JSON.stringify(merged));
+
+      if (updates.startDate !== undefined) setStartDateState(updates.startDate);
+      if (updates.tasks !== undefined) setTasks(updates.tasks);
+      if (updates.dailyLogs !== undefined) setDailyLogs(updates.dailyLogs);
+      if (updates.dsaProblems !== undefined) setDsaProblems(updates.dsaProblems);
+      if (updates.milestones !== undefined) setMilestones(updates.milestones);
+      return;
+    }
+
+    // Try backend API
     try {
       const response = await fetch(`${API_URL}/progress`, {
         method: 'PUT',
@@ -96,59 +136,44 @@ export const App: React.FC = () => {
         },
         body: JSON.stringify(updates),
       });
-      if (!response.ok) {
-        throw new Error('Failed to sync progress with database');
-      }
+      if (!response.ok) throw new Error('Failed to sync progress');
       const data = await response.json();
-      // Update local state with response values to maintain strict consistency
       if (updates.startDate !== undefined) setStartDateState(data.startDate);
       if (updates.tasks !== undefined) setTasks(data.tasks || {});
       if (updates.dailyLogs !== undefined) setDailyLogs(data.dailyLogs || {});
       if (updates.dsaProblems !== undefined) setDsaProblems(data.dsaProblems || []);
       if (updates.milestones !== undefined) setMilestones(data.milestones || {});
     } catch (error) {
-      console.error('Error syncing state to server:', error);
+      console.error('Error syncing progress:', error);
     }
   };
 
-  const setStartDate = async (date: string) => {
+  const setStartDate = (date: string) => {
     setStartDateState(date);
-    await syncStateToBackend({ startDate: date });
+    syncProgress({ startDate: date });
   };
 
-  const handleToggleTask = async (taskId: string) => {
-    const updatedTasks = {
-      ...tasks,
-      [taskId]: !tasks[taskId],
-    };
+  const handleToggleTask = (taskId: string) => {
+    const updatedTasks = { ...tasks, [taskId]: !tasks[taskId] };
     setTasks(updatedTasks);
-    await syncStateToBackend({ tasks: updatedTasks });
+    syncProgress({ tasks: updatedTasks });
   };
 
-  const handleToggleMilestone = async (projectId: string, index: number) => {
+  const handleToggleMilestone = (projectId: string, index: number) => {
     const key = `${projectId}-${index}`;
-    const updatedMilestones = {
-      ...milestones,
-      [key]: !milestones[key],
-    };
+    const updatedMilestones = { ...milestones, [key]: !milestones[key] };
     setMilestones(updatedMilestones);
-    await syncStateToBackend({ milestones: updatedMilestones });
+    syncProgress({ milestones: updatedMilestones });
   };
 
-  const handleToggleCommitDay = async (dateStr: string) => {
+  const handleToggleCommitDay = (dateStr: string) => {
     const log = dailyLogs[dateStr] || {};
-    const updatedLogs = {
-      ...dailyLogs,
-      [dateStr]: {
-        ...log,
-        commit: !log.commit,
-      },
-    };
+    const updatedLogs = { ...dailyLogs, [dateStr]: { ...log, commit: !log.commit } };
     setDailyLogs(updatedLogs);
-    await syncStateToBackend({ dailyLogs: updatedLogs });
+    syncProgress({ dailyLogs: updatedLogs });
   };
 
-  const handleAddProblem = async (
+  const handleAddProblem = (
     name: string,
     difficulty: 'easy' | 'medium' | 'hard',
     phase: string,
@@ -164,22 +189,19 @@ export const App: React.FC = () => {
     };
     const updatedProblems = [...dsaProblems, newProblem];
     setDsaProblems(updatedProblems);
-    await syncStateToBackend({ dsaProblems: updatedProblems });
+    syncProgress({ dsaProblems: updatedProblems });
   };
 
-  const handleDeleteProblem = async (id: string) => {
+  const handleDeleteProblem = (id: string) => {
     const updatedProblems = dsaProblems.filter((p) => p.id !== id);
     setDsaProblems(updatedProblems);
-    await syncStateToBackend({ dsaProblems: updatedProblems });
+    syncProgress({ dsaProblems: updatedProblems });
   };
 
-  const handleSaveLog = async (dateStr: string, logData: any) => {
-    const updatedLogs = {
-      ...dailyLogs,
-      [dateStr]: logData,
-    };
+  const handleSaveLog = (dateStr: string, logData: any) => {
+    const updatedLogs = { ...dailyLogs, [dateStr]: logData };
     setDailyLogs(updatedLogs);
-    await syncStateToBackend({ dailyLogs: updatedLogs });
+    syncProgress({ dailyLogs: updatedLogs });
   };
 
   const handleOpenPhase = (phaseIdx: number) => {
@@ -187,7 +209,6 @@ export const App: React.FC = () => {
     setCurrentView('roadmap');
   };
 
-  // Compute Streak for header displays
   const computeStreak = () => {
     let streak = 0;
     const d = new Date();
@@ -210,7 +231,6 @@ export const App: React.FC = () => {
   if (!token || !username) {
     return (
       <>
-        {/* Animated Background */}
         <div className="bg-grid"></div>
         <div className="bg-orbs">
           <div className="orb orb-1"></div>
@@ -224,7 +244,6 @@ export const App: React.FC = () => {
 
   return (
     <>
-      {/* Animated Background */}
       <div className="bg-grid"></div>
       <div className="bg-orbs">
         <div className="orb orb-1"></div>
@@ -232,7 +251,16 @@ export const App: React.FC = () => {
         <div className="orb orb-3"></div>
       </div>
 
-      {/* Sidebar Navigation */}
+      {/* Offline mode banner */}
+      {isOffline && (
+        <div className="demo-banner">
+          <span>📡 Offline Mode</span> — Backend unreachable. Data saved locally in your browser.
+          <button className="demo-banner-dismiss" onClick={handleLogout}>
+            Sign Out
+          </button>
+        </div>
+      )}
+
       <Sidebar
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -243,7 +271,6 @@ export const App: React.FC = () => {
         setSidebarOpen={setSidebarOpen}
       />
 
-      {/* Mobile Header */}
       <header className="mobile-header">
         <button
           className="hamburger"
@@ -258,7 +285,6 @@ export const App: React.FC = () => {
         <div className="mobile-streak">🔥 {currentStreak}</div>
       </header>
 
-      {/* Main Content */}
       <main className="main-content">
         {currentView === 'dashboard' && (
           <Dashboard

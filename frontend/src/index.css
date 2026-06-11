@@ -913,3 +913,142 @@ cite { display: block; margin-top: 4px; font-size: 0.78rem; color: var(--text-mu
   text-align: left;
 }
 
+/* ─── Auth Divider & Demo Credentials ─── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.auth-divider span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.demo-credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.credential-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  transition: border-color var(--transition);
+}
+.credential-row:hover {
+  border-color: var(--border-light);
+}
+.credential-row code {
+  font-family: var(--font-mono);
+  color: var(--text-accent);
+  font-weight: 600;
+  font-size: 0.82rem;
+  background: rgba(99,102,241,0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.credential-label {
+  font-size: 0.9rem;
+}
+.credential-sep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.demo-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ─── Forgot Password ─── */
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--text-accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  display: inline-block;
+  text-decoration: none;
+  transition: opacity var(--transition);
+  font-family: var(--font-main);
+}
+.forgot-password-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+.forgot-hint-box {
+  background: rgba(99,102,241,0.06);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: fadeIn 0.3s ease;
+}
+.forgot-hint-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ─── Offline Mode Banner ─── */
+.demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(90deg, rgba(249,115,22,0.15), rgba(234,179,8,0.12));
+  border-bottom: 1px solid rgba(249,115,22,0.3);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  padding: 8px 20px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+}
+.demo-banner span {
+  font-weight: 700;
+  color: var(--orange);
+}
+.demo-banner-dismiss {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: all var(--transition);
+  font-family: var(--font-main);
+}
+.demo-banner-dismiss:hover {
+  background: rgba(255,255,255,0.15);
+  color: var(--text-primary);
+}
+
