@@ -26,6 +26,9 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, apiUrl }) => {
     setError('');
     setLoading(true);
 
+    let useOfflineFallback = false;
+    let authErrorMessage = '';
+
     // ── Step 1: Try the real backend API ──────────────────────────────────
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
@@ -39,53 +42,61 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, apiUrl }) => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed');
+      // Try parsing the response as JSON.
+      // If parsing fails (e.g. server returns 502/404 HTML page), treat backend as unreachable.
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        throw new Error('BACKEND_UNREACHABLE');
       }
 
-      // Backend responded — use real token
-      onAuthSuccess(data.token, data.username, false);
-      setLoading(false);
-      return;
-    } catch (err: any) {
-      // If it's a real server error (like wrong password), show the error
-      // If it's a network error (backend unreachable), fall through to offline mode
-      const isNetworkError =
-        err.message === 'Failed to fetch' ||
-        err.name === 'TypeError' ||
-        err.message.includes('NetworkError');
-
-      if (!isNetworkError) {
-        // Server responded with an error (e.g. wrong credentials)
-        setError(err.message || 'Authentication failed');
+      if (!response.ok) {
+        // If it's a server error (5xx) or not found (404), treat backend as offline/down.
+        if (response.status >= 500 || response.status === 404) {
+          throw new Error('BACKEND_UNREACHABLE');
+        }
+        // Otherwise, it's a specific auth failure (400, 401, 403) with a JSON error message.
+        authErrorMessage = data.message || 'Authentication failed';
+      } else {
+        // Backend responded successfully — use real token
+        onAuthSuccess(data.token, data.username, false);
         setLoading(false);
         return;
       }
-
-      // Network error — fall through to offline mode
-      console.warn('Backend unreachable, falling back to offline mode...');
+    } catch (err: any) {
+      if (err.message === 'BACKEND_UNREACHABLE') {
+        useOfflineFallback = true;
+      } else {
+        // Any other fetch exception (CORS error, connection refused, DNS error, localized TypeError, etc.)
+        console.warn('Fetch exception caught, falling back to offline mode:', err);
+        useOfflineFallback = true;
+      }
     }
 
-    // ── Step 2: Fallback to local dummy credentials ──────────────────────
-    if (isLogin) {
-      // For login: match by email + password against dummy users
-      const matched = DUMMY_USERS.find(
-        (u) => u.email === email.trim().toLowerCase() && u.password === password
-      );
+    // ── Step 2: Fallback or Error Display ──────────────────────
+    if (useOfflineFallback) {
+      if (isLogin) {
+        // For login: match by email + password against dummy users
+        const matched = DUMMY_USERS.find(
+          (u) => u.email === email.trim().toLowerCase() && u.password === password
+        );
 
-      if (matched) {
-        const fakeToken = `offline-token-${matched.username}-${Date.now()}`;
-        onAuthSuccess(fakeToken, matched.username, true);
+        if (matched) {
+          const fakeToken = `offline-token-${matched.username}-${Date.now()}`;
+          onAuthSuccess(fakeToken, matched.username, true);
+        } else {
+          setError('Backend offline. Try offline account: admin@test.com / 123456789');
+        }
       } else {
-        setError('Backend offline. Try offline account: admin@test.com / 123456789');
+        // For register: simulate success (just log them in)
+        const trimmedUsername = username.trim() || 'NewUser';
+        const fakeToken = `offline-token-${trimmedUsername}-${Date.now()}`;
+        onAuthSuccess(fakeToken, trimmedUsername, true);
       }
     } else {
-      // For register: simulate success (just log them in)
-      const trimmedUsername = username.trim() || 'NewUser';
-      const fakeToken = `offline-token-${trimmedUsername}-${Date.now()}`;
-      onAuthSuccess(fakeToken, trimmedUsername, true);
+      // Show the actual server auth message (e.g., wrong password / user exists)
+      setError(authErrorMessage || 'Authentication failed');
     }
 
     setLoading(false);

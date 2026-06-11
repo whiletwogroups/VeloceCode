@@ -173,7 +173,7 @@ export const App: React.FC = () => {
     syncProgress({ dailyLogs: updatedLogs });
   };
 
-  const handleAddProblem = (
+  const handleAddProblem = async (
     name: string,
     difficulty: 'easy' | 'medium' | 'hard',
     phase: string,
@@ -189,19 +189,19 @@ export const App: React.FC = () => {
     };
     const updatedProblems = [...dsaProblems, newProblem];
     setDsaProblems(updatedProblems);
-    syncProgress({ dsaProblems: updatedProblems });
+    await syncProgress({ dsaProblems: updatedProblems });
   };
 
-  const handleDeleteProblem = (id: string) => {
+  const handleDeleteProblem = async (id: string) => {
     const updatedProblems = dsaProblems.filter((p) => p.id !== id);
     setDsaProblems(updatedProblems);
-    syncProgress({ dsaProblems: updatedProblems });
+    await syncProgress({ dsaProblems: updatedProblems });
   };
 
-  const handleSaveLog = (dateStr: string, logData: any) => {
+  const handleSaveLog = async (dateStr: string, logData: any) => {
     const updatedLogs = { ...dailyLogs, [dateStr]: logData };
     setDailyLogs(updatedLogs);
-    syncProgress({ dailyLogs: updatedLogs });
+    await syncProgress({ dailyLogs: updatedLogs });
   };
 
   const handleOpenPhase = (phaseIdx: number) => {
