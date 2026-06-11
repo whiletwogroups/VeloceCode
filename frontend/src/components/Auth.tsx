@@ -26,6 +26,23 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, apiUrl }) => {
     setError('');
     setLoading(true);
 
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // ── Check if it is a designated offline test account ─────────────
+    if (isLogin) {
+      const matchedDummy = DUMMY_USERS.find(
+        (u) => u.email === trimmedEmail && u.password === password
+      );
+
+      if (matchedDummy) {
+        console.log('Designated offline test account detected. Logging in offline...');
+        const fakeToken = `offline-token-${matchedDummy.username}-${Date.now()}`;
+        onAuthSuccess(fakeToken, matchedDummy.username, true);
+        setLoading(false);
+        return;
+      }
+    }
+
     let useOfflineFallback = false;
     let authErrorMessage = '';
 
@@ -33,8 +50,8 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, apiUrl }) => {
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
       const payload = isLogin
-        ? { email: email.trim(), password }
-        : { username: username.trim(), email: email.trim(), password };
+        ? { email: trimmedEmail, password }
+        : { username: username.trim(), email: trimmedEmail, password };
 
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
@@ -79,7 +96,7 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, apiUrl }) => {
       if (isLogin) {
         // For login: match by email + password against dummy users
         const matched = DUMMY_USERS.find(
-          (u) => u.email === email.trim().toLowerCase() && u.password === password
+          (u) => u.email === trimmedEmail && u.password === password
         );
 
         if (matched) {
