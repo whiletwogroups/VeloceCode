@@ -423,6 +423,21 @@ export const RoadmapProvider = ({ children }) => {
     }
   };
 
+  const updateStartDate = (newStartDate) => {
+    const cId = state.activeCourseId || 'webdev';
+    const courseData = { ...getActiveCourseProgress() };
+    courseData.startDate = newStartDate;
+
+    const newCourses = { ...state.courses };
+    newCourses[cId] = courseData;
+
+    const updated = {
+      ...state,
+      courses: newCourses
+    };
+    saveState(updated);
+  };
+
   const changeTheme = (theme) => {
     applyThemeAndFont(theme, state.selectedFont);
     const updated = { ...state, selectedTheme: theme };
@@ -497,6 +512,7 @@ export const RoadmapProvider = ({ children }) => {
         getWeeklyAvatar,
         updateUsername,
         updatePassword,
+        updateStartDate,
         reloadSession: () => loadActiveState(currentUser)
       }}
     >
