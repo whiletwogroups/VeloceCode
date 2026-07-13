@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useRoadmap } from '../context/RoadmapContext.jsx';
 import { auth, googleProvider, hasFirebaseCredentials } from '../services/firebaseConfig.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { validateEmail, validatePassword, validateUsername, checkRateLimit } from '../utils/security.js';
 
 export default function AuthModal() {
   const { reloadSession } = useRoadmap();
@@ -20,6 +21,30 @@ export default function AuthModal() {
 
     if (!email.trim() || !password.trim()) {
       setErrorMsg("⚠️ Email and password fields cannot be blank.");
+      return;
+    }
+
+    // 1. Rate limiter check on authentication attempts
+    try {
+      checkRateLimit('auth');
+    } catch (err) {
+      setErrorMsg(err.message);
+      return;
+    }
+
+    // 2. Schema validations
+    if (!validateEmail(email)) {
+      setErrorMsg("⚠️ Please specify a valid email address (5-100 characters).");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setErrorMsg("⚠️ Password must be between 6 and 100 characters in length.");
+      return;
+    }
+
+    if (!isLogin && !validateUsername(username)) {
+      setErrorMsg("⚠️ Username must be between 3 and 25 characters and contain only alphanumeric characters, underscores, or hyphens.");
       return;
     }
 
@@ -84,6 +109,14 @@ export default function AuthModal() {
   const handleGoogleSignIn = async () => {
     setErrorMsg('');
     setSuccessMsg('');
+
+    // 1. Rate limiter check on authentication attempts
+    try {
+      checkRateLimit('auth');
+    } catch (err) {
+      setErrorMsg(err.message);
+      return;
+    }
 
     if (hasFirebaseCredentials && auth && googleProvider) {
       try {

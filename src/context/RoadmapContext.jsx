@@ -3,6 +3,7 @@ import { COURSES, getCourseCurriculum } from '../content/courses.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { auth, db, hasFirebaseCredentials } from '../services/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { checkRateLimit, validateAndSanitizeDailyLog, validateAndSanitizeDsaProblem, sanitizeString } from '../utils/security.js';
 
 const RoadmapContext = createContext();
 
@@ -243,32 +244,44 @@ export const RoadmapProvider = ({ children }) => {
   };
 
   const saveDailyLog = (dateKey, fields) => {
-    const cId = state.activeCourseId || 'webdev';
-    const courseData = { ...getActiveCourseProgress() };
-    const newLogs = { ...courseData.dailyLogs };
+    try {
+      // 1. Rate Limiter check
+      checkRateLimit('db_write');
 
-    newLogs[dateKey] = {
-      ...(newLogs[dateKey] || {
-        learned: false,
-        coded: false,
-        dsa: false,
-        commit: false,
-        review: false,
-        notes: '',
-        focusMinutes: 0
-      }),
-      ...fields
-    };
-    courseData.dailyLogs = newLogs;
+      // 2. Schema check and sanitization
+      const sanitizedFields = validateAndSanitizeDailyLog(fields);
+      const safeDateKey = sanitizeString(dateKey);
 
-    const newCourses = { ...state.courses };
-    newCourses[cId] = courseData;
+      const cId = state.activeCourseId || 'webdev';
+      const courseData = { ...getActiveCourseProgress() };
+      const newLogs = { ...courseData.dailyLogs };
 
-    const updated = {
-      ...state,
-      courses: newCourses
-    };
-    saveState(updated);
+      newLogs[safeDateKey] = {
+        ...(newLogs[safeDateKey] || {
+          learned: false,
+          coded: false,
+          dsa: false,
+          commit: false,
+          review: false,
+          notes: '',
+          focusMinutes: 0
+        }),
+        ...sanitizedFields
+      };
+      courseData.dailyLogs = newLogs;
+
+      const newCourses = { ...state.courses };
+      newCourses[cId] = courseData;
+
+      const updated = {
+        ...state,
+        courses: newCourses
+      };
+      saveState(updated);
+    } catch (error) {
+      console.error("Security/Sync Error in saveDailyLog:", error.message);
+      showToast(error.message, "warning");
+    }
   };
 
   const toggleMilestone = (projectId, index) => {
@@ -296,8 +309,27 @@ export const RoadmapProvider = ({ children }) => {
   };
 
   const updateAvatarImage = (mode, imgBase64) => {
-    const updated = { ...state, avatarMode: mode, customAvatarImg: imgBase64 };
-    saveState(updated);
+    try {
+      // 1. Rate Limiter check
+      checkRateLimit('db_write');
+
+      // 2. Sanitization & simple validation
+      const safeMode = sanitizeString(mode);
+      const safeImg = sanitizeString(imgBase64);
+
+      if (safeMode !== 'weekly' && safeMode !== 'custom') {
+        throw new Error("Invalid avatar mode.");
+      }
+      if (safeImg.length > 5000000) {
+        throw new Error("Avatar image size exceeds the limit of 5MB.");
+      }
+
+      const updated = { ...state, avatarMode: safeMode, customAvatarImg: safeImg };
+      saveState(updated);
+    } catch (error) {
+      console.error("Security/Sync Error in updateAvatarImage:", error.message);
+      showToast(error.message, "warning");
+    }
   };
 
   const changeTheme = (theme) => {
@@ -313,9 +345,20 @@ export const RoadmapProvider = ({ children }) => {
   };
 
   const addDsaProblem = (problem) => {
-    const newDsa = [...(state.dsaProblems || []), problem];
-    const updated = { ...state, dsaProblems: newDsa };
-    saveState(updated);
+    try {
+      // 1. Rate Limiter check
+      checkRateLimit('db_write');
+
+      // 2. Schema check and sanitization
+      const sanitizedProblem = validateAndSanitizeDsaProblem(problem);
+
+      const newDsa = [...(state.dsaProblems || []), sanitizedProblem];
+      const updated = { ...state, dsaProblems: newDsa };
+      saveState(updated);
+    } catch (error) {
+      console.error("Security/Sync Error in addDsaProblem:", error.message);
+      showToast(error.message, "warning");
+    }
   };
 
   const removeDsaProblem = (problemId) => {
