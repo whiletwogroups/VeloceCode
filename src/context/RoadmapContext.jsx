@@ -370,6 +370,59 @@ export const RoadmapProvider = ({ children }) => {
     return WEEKLY_AVATARS[index] || WEEKLY_AVATARS[0];
   };
 
+  const updateUsername = async (newUsername) => {
+    const trimmed = newUsername.trim();
+    if (!trimmed) throw new Error("⚠️ Username cannot be empty.");
+    if (hasFirebaseCredentials && auth && auth.currentUser) {
+      const { updateProfile } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+      await updateProfile(auth.currentUser, { displayName: trimmed });
+      setCurrentUser({ ...auth.currentUser, displayName: trimmed });
+    } else {
+      const currentUserStr = localStorage.getItem('devRoadmap_currentUser');
+      if (currentUserStr) {
+        const u = JSON.parse(currentUserStr);
+        u.username = trimmed;
+        localStorage.setItem('devRoadmap_currentUser', JSON.stringify(u));
+        
+        const usersKey = 'devRoadmap_localUsers';
+        const users = JSON.parse(localStorage.getItem(usersKey) || '[]');
+        const updatedUsers = users.map(user => {
+          if (user.email === u.email) {
+            return { ...user, username: trimmed };
+          }
+          return user;
+        });
+        localStorage.setItem(usersKey, JSON.stringify(updatedUsers));
+        setCurrentUser(prev => ({ ...prev, displayName: trimmed }));
+      }
+    }
+  };
+
+  const updatePassword = async (currentPw, newPw) => {
+    if (newPw.length < 6) {
+      throw new Error("⚠️ New password must be at least 6 characters.");
+    }
+    if (hasFirebaseCredentials && auth && auth.currentUser) {
+      const { updatePassword: updateFbPw } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+      await updateFbPw(auth.currentUser, newPw);
+    } else {
+      const currentUserStr = localStorage.getItem('devRoadmap_currentUser');
+      if (!currentUserStr) throw new Error("No active session found.");
+      const u = JSON.parse(currentUserStr);
+      const email = u.email;
+
+      const usersKey = 'devRoadmap_localUsers';
+      const users = JSON.parse(localStorage.getItem(usersKey) || '[]');
+      const userIndex = users.findIndex(usr => usr.email === email);
+      if (userIndex === -1) throw new Error("User record not found.");
+      if (users[userIndex].password !== currentPw) {
+        throw new Error("❌ Incorrect current password.");
+      }
+      users[userIndex].password = newPw;
+      localStorage.setItem(usersKey, JSON.stringify(users));
+    }
+  };
+
   const changeTheme = (theme) => {
     applyThemeAndFont(theme, state.selectedFont);
     const updated = { ...state, selectedTheme: theme };
@@ -442,6 +495,8 @@ export const RoadmapProvider = ({ children }) => {
         logout,
         getCompletedWeeksCount,
         getWeeklyAvatar,
+        updateUsername,
+        updatePassword,
         reloadSession: () => loadActiveState(currentUser)
       }}
     >
