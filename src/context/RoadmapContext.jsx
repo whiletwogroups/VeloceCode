@@ -10,7 +10,7 @@ const RoadmapContext = createContext();
 const DEFAULT_STATE = {
   activeCourseId: 'webdev',
   courses: {},
-  selectedTheme: 'blueprint',
+  selectedTheme: 'ember',
   selectedFont: 'public',
   avatarColor: null,
   avatarMode: 'weekly',

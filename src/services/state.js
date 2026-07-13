@@ -24,7 +24,7 @@ export let state = {
   dsaProblems: [],  // [{ id, name, difficulty, phase, topic, date }]
   milestones: {},   // { 'projectId-milestoneIndex': true }
   gitCicdSkills: {}, // { skillId: true/false }
-  selectedTheme: 'blueprint',
+  selectedTheme: 'ember',
   selectedFont: 'public',
   avatarColor: null,
   avatarMode: 'weekly', // 'weekly' or 'custom'
@@ -86,7 +86,7 @@ export function resetState() {
   state.dsaProblems = [];
   state.milestones = {};
   state.gitCicdSkills = {};
-  state.selectedTheme = 'blueprint';
+  state.selectedTheme = 'ember';
   state.selectedFont = 'public';
   state.avatarColor = null;
   state.avatarMode = 'weekly';
