@@ -1,8 +1,9 @@
 import React from 'react';
 import { useRoadmap } from '../context/RoadmapContext.jsx';
+import { WEEKLY_AVATARS } from '../services/state.js';
 
 export default function LeaderboardView() {
-  const { currentUser, state } = useRoadmap();
+  const { currentUser, state, getWeeklyAvatar } = useRoadmap();
 
   // Compute current user's XP
   const calculateUserXP = () => {
@@ -18,21 +19,27 @@ export default function LeaderboardView() {
   const userXP = calculateUserXP();
   const userLevel = Math.floor(userXP / 200) + 1;
 
+  // Helper to resolve candidates weekly progress avatars
+  const getCandidateAvatar = (level) => {
+    const index = Math.min(level - 1, WEEKLY_AVATARS.length - 1);
+    return WEEKLY_AVATARS[index]?.emoji || '💻';
+  };
+
   // Candidates list
   const candidates = [
-    { name: 'Emily Chen', avatar: '👩‍💻', rank: 1, level: 32, xp: 6420, active: true },
-    { name: 'Alex Rivera', avatar: '👨‍💻', rank: 2, level: 29, xp: 5890, active: true },
-    { name: 'Sarah Jenkins', avatar: '🦄', rank: 3, level: 27, xp: 5410, active: true },
-    { name: 'Michael Zhao', avatar: '🐉', rank: 4, level: 25, xp: 5080, active: false },
-    { name: 'Elena Rostova', avatar: '🦊', rank: 5, level: 24, xp: 4850, active: true },
-    { name: 'David Kim', avatar: '🦅', rank: 6, level: 22, xp: 4420, active: false }
+    { name: 'Emily Chen', avatar: getCandidateAvatar(32), rank: 1, level: 32, xp: 6420, active: true },
+    { name: 'Alex Rivera', avatar: getCandidateAvatar(29), rank: 2, level: 29, xp: 5890, active: true },
+    { name: 'Sarah Jenkins', avatar: getCandidateAvatar(27), rank: 3, level: 27, xp: 5410, active: true },
+    { name: 'Michael Zhao', avatar: getCandidateAvatar(25), rank: 4, level: 25, xp: 5080, active: false },
+    { name: 'Elena Rostova', avatar: getCandidateAvatar(24), rank: 5, level: 24, xp: 4850, active: true },
+    { name: 'David Kim', avatar: getCandidateAvatar(22), rank: 6, level: 22, xp: 4420, active: false }
   ];
 
   // Merge current user dynamically into leaderboard
   const username = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'Guest Coder';
   const userObj = {
     name: `${username} (You)`,
-    avatar: '💻',
+    avatar: getWeeklyAvatar().emoji,
     rank: 0, // calculated below
     level: userLevel,
     xp: userXP,

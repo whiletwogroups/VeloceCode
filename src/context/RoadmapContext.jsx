@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/f
 import { auth, db, hasFirebaseCredentials } from '../services/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { checkRateLimit, validateAndSanitizeDailyLog, validateAndSanitizeDsaProblem, sanitizeString } from '../utils/security.js';
+import { WEEKLY_AVATARS } from '../services/state.js';
 
 const RoadmapContext = createContext();
 
@@ -332,6 +333,43 @@ export const RoadmapProvider = ({ children }) => {
     }
   };
 
+  const getCompletedWeeksCount = () => {
+    const activeId = state.activeCourseId || 'webdev';
+    const curriculum = getCourseCurriculum(activeId);
+    const courseData = state.courses[activeId] || {};
+    const tasks = courseData.tasks || {};
+
+    let completedWeeks = 0;
+    curriculum.forEach((phase, pi) => {
+      const pIdx = phase.phase - 1;
+      phase.weeks_data.forEach((week, wi) => {
+        const wIdx = week.week;
+        let total = 0, done = 0;
+        week.days.forEach((day, di) => {
+          const globalDay = (wIdx - 1) * 5 + day.day;
+          const learnId = `p${pIdx}-w${wIdx}-d${globalDay}-learn`;
+          const buildId = `p${pIdx}-w${wIdx}-d${globalDay}-build`;
+          
+          total += 2;
+          if (tasks[learnId]) done++;
+          if (tasks[buildId]) done++;
+        });
+        
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        if (pct === 100) {
+          completedWeeks++;
+        }
+      });
+    });
+    return completedWeeks;
+  };
+
+  const getWeeklyAvatar = () => {
+    const completed = getCompletedWeeksCount();
+    const index = Math.min(completed, WEEKLY_AVATARS.length - 1);
+    return WEEKLY_AVATARS[index] || WEEKLY_AVATARS[0];
+  };
+
   const changeTheme = (theme) => {
     applyThemeAndFont(theme, state.selectedFont);
     const updated = { ...state, selectedTheme: theme };
@@ -402,6 +440,8 @@ export const RoadmapProvider = ({ children }) => {
         showConfirm,
         closeDialog,
         logout,
+        getCompletedWeeksCount,
+        getWeeklyAvatar,
         reloadSession: () => loadActiveState(currentUser)
       }}
     >

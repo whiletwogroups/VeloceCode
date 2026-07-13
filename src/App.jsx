@@ -29,7 +29,8 @@ export default function App() {
     dialog,
     showConfirm,
     closeDialog,
-    logout 
+    logout,
+    getWeeklyAvatar
   } = useRoadmap();
 
   const [currentView, setCurrentView] = useState('dashboard');
@@ -171,12 +172,12 @@ export default function App() {
               <div 
                 className="profile-avatar" 
                 style={{ 
-                  width: '28px', height: '28px', fontSize: '0.8rem', fontWeight: 800, 
+                  width: '28px', height: '28px', fontSize: '1.1rem', fontWeight: 800, 
                   borderRadius: '50%', background: state.avatarColor || 'var(--accent-grad)', 
                   display: 'grid', placeItems: 'center', color: 'white' 
                 }}
               >
-                {getAvatarLetter()}
+                {getWeeklyAvatar().emoji}
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
