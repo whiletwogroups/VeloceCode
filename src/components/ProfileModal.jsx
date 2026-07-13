@@ -124,14 +124,14 @@ export default function ProfileModal({ onClose }) {
       <div 
         className="card profile-redesign-modal" 
         style={{ 
-          width: '100%', maxWidth: '480px', padding: '28px', margin: 0, background: 'rgba(15, 23, 42, 0.95)', 
-          border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: '16px',
+          width: '100%', maxWidth: '820px', padding: '28px', margin: 0, background: 'rgba(15, 23, 42, 0.95)', 
+          border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: '4px',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.05)', 
           maxHeight: '90vh', overflowY: 'auto'
         }}
       >
         {/* Header section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '14px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '14px', marginBottom: '20px' }}>
           <div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white', margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>⚙️</span> Profile & Settings
@@ -141,7 +141,7 @@ export default function ProfileModal({ onClose }) {
           <button 
             onClick={onClose} 
             style={{ 
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%',
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px',
               color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem', width: '28px', height: '28px', 
               display: 'grid', placeItems: 'center', transition: 'all 0.2s ease', padding: 0 
             }}
@@ -152,291 +152,303 @@ export default function ProfileModal({ onClose }) {
           </button>
         </div>
 
-        {/* Premium Profile Showcase Card */}
-        <div 
-          style={{ 
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 100%)', 
-            border: '1.5px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', 
-            display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', position: 'relative', overflow: 'hidden' 
-          }}
-        >
-          {/* Ambient Glow behind avatar */}
-          <div 
-            style={{ 
-              position: 'absolute', left: '10px', top: '10px', width: '60px', height: '60px', 
-              borderRadius: '50%', background: state.avatarColor || 'var(--accent-1)', 
-              opacity: 0.15, filter: 'blur(15px)', zIndex: 0 
-            }}
-          />
-
-          <div 
-            style={{ 
-              width: '56px', height: '56px', borderRadius: '50%', background: state.avatarColor || 'var(--accent-grad)',
-              display: 'grid', placeItems: 'center', fontSize: '1.85rem', color: 'white', fontWeight: 800,
-              boxShadow: `0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px ${state.avatarColor || 'rgba(99,102,241,0.2)'}`,
-              border: '2px solid rgba(255,255,255,0.1)', zIndex: 1
-            }}
-          >
-            {currentAvatar.emoji}
-          </div>
-          <div style={{ zIndex: 1, textAlign: 'left' }}>
-            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'white', margin: '0 0 2px 0', letterSpacing: '-0.01em' }}>
-              {currentUser?.displayName || currentUser?.email.split('@')[0]}
-            </h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-              <span style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>{currentUser?.email}</span>
-              <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
-              <span style={{ fontSize: '0.66rem', color: 'var(--accent-1)', fontWeight: 700 }}>
-                {activeCourseMeta.emoji} {activeCourseMeta.title}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ─── SECTION 1: DISPLAY NAME CHANGER ─── */}
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-            Display Name
-          </label>
-          <form onSubmit={handleUpdateUsername} style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              type="text" 
-              value={usernameInput}
-              onChange={(e) => setUsernameInput(e.target.value)}
-              className="form-input" 
-              style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
-              placeholder="Certificate original name"
-              required
-            />
-            <button 
-              type="submit" 
-              className="btn-primary" 
-              disabled={isSubmittingUsername}
-              style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+        {/* Two-column layout grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '28px' }}>
+          
+          {/* ─── LEFT COLUMN ─── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* User Identity Box Card */}
+            <div 
+              style={{ 
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 100%)', 
+                border: '1.5px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '4px', 
+                display: 'flex', alignItems: 'center', gap: '14px', position: 'relative', overflow: 'hidden' 
+              }}
             >
-              {isSubmittingUsername ? 'Saving...' : 'Update'}
-            </button>
-          </form>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Provide your full name for generating course certificates.</span>
-        </div>
+              {/* Ambient Glow behind avatar */}
+              <div 
+                style={{ 
+                  position: 'absolute', left: '10px', top: '10px', width: '60px', height: '60px', 
+                  borderRadius: '4px', background: state.avatarColor || 'var(--accent-1)', 
+                  opacity: 0.15, filter: 'blur(15px)', zIndex: 0 
+                }}
+              />
 
-        {/* ─── SECTION 2: AVATAR COLOR SCHEME ─── */}
-        <div style={{ marginBottom: '24px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
-          <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
-            Profile Color Scheme
-          </label>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {colors.map(col => {
-              const isSelected = state.avatarColor === col;
-              return (
-                <button 
-                  key={col}
-                  onClick={() => updateAvatarColor(col)}
-                  className="color-picker-dot"
-                  style={{ 
-                    width: '26px', height: '26px', borderRadius: '50%', background: col, border: isSelected ? '2px solid white' : '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
-                    transform: isSelected ? 'scale(1.2)' : '',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: isSelected ? `0 0 10px ${col}` : 'none'
-                  }}
-                  title={col}
-                />
-              );
-            })}
-          </div>
-        </div>
+              <div 
+                style={{ 
+                  width: '52px', height: '52px', borderRadius: '4px', background: state.avatarColor || 'var(--accent-grad)',
+                  display: 'grid', placeItems: 'center', fontSize: '1.75rem', color: 'white', fontWeight: 800,
+                  boxShadow: `0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px ${state.avatarColor || 'rgba(99,102,241,0.2)'}`,
+                  border: '2px solid rgba(255,255,255,0.1)', zIndex: 1
+                }}
+              >
+                {currentAvatar.emoji}
+              </div>
+              <div style={{ zIndex: 1, textAlign: 'left' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'white', margin: '0 0 2px 0', letterSpacing: '-0.01em' }}>
+                  {currentUser?.displayName || currentUser?.email.split('@')[0]}
+                </h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>{currentUser?.email}</span>
+                  <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+                  <span style={{ fontSize: '0.66rem', color: 'var(--accent-1)', fontWeight: 700 }}>
+                    {activeCourseMeta.emoji} {activeCourseMeta.title}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-        {/* ─── SECTION 3: COURSE START DATE MANAGEMENT ─── */}
-        <div style={{ marginBottom: '24px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
-          <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-            Course Start Date
-          </label>
-          {activeCourseProgress.startDate ? (
-            <form onSubmit={handleUpdateDate} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            {/* Display Name Changer Form */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                Display Name
+              </label>
+              <form onSubmit={handleUpdateUsername} style={{ display: 'flex', gap: '8px' }}>
                 <input 
-                  type="date" 
-                  value={startDateInput}
-                  onChange={(e) => setStartDateInput(e.target.value)}
+                  type="text" 
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
                   className="form-input" 
-                  style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
+                  style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
+                  placeholder="Certificate original name"
                   required
                 />
                 <button 
                   type="submit" 
                   className="btn-primary" 
-                  style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                  disabled={isSubmittingUsername}
+                  style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}
                 >
-                  Save Date
+                  {isSubmittingUsername ? 'Saving...' : 'Update'}
                 </button>
-              </div>
-              <button 
-                type="button" 
-                onClick={handleResetDate}
-                className="btn-secondary" 
-                style={{ width: '100%', fontSize: '0.74rem', padding: '8px 0', border: '1.5px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 700 }}
-              >
-                Reset Start Date (Remove Enrollment)
-              </button>
-            </form>
-          ) : (
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '12px', background: 'rgba(255,255,255,0.015)', border: '1px dashed var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              No start date set. Enrollment is required to track milestones.
+              </form>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Provide your full name for generating course certificates.</span>
             </div>
-          )}
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
-            Resetting your start date returns the course to an unenrolled state, letting you start fresh or select another curriculum.
-          </span>
-        </div>
 
-        {/* ─── SECTION 4: WEEKLY AVATARS SHOWCASE ─── */}
-        <div style={{ marginBottom: '24px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <label style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-              Avatar Unlocks
-            </label>
-            <span style={{ fontSize: '0.66rem', color: 'var(--accent-1)', fontWeight: 700 }}>
-              {completedCount} / {WEEKLY_AVATARS.length - 1} Weeks Done
-            </span>
-          </div>
-          <div 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(5, 1fr)', 
-              gap: '6px', 
-              maxHeight: '140px', 
-              overflowY: 'auto', 
-              padding: '8px', 
-              background: 'rgba(0,0,0,0.25)', 
-              borderRadius: '8px',
-              border: '1px solid var(--border)'
-            }}
-          >
-            {WEEKLY_AVATARS.map((av, index) => {
-              const isUnlocked = index <= completedCount;
-              const isCurrent = index === completedCount;
-              return (
-                <div 
-                  key={index} 
-                  title={isUnlocked ? av.title : `Locked (Complete Week ${index})`}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px 4px',
-                    borderRadius: '6px',
-                    border: isCurrent ? '1.5px solid var(--accent-1)' : '1px solid rgba(255,255,255,0.04)',
-                    background: isCurrent ? 'rgba(99, 102, 241, 0.08)' : isUnlocked ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.005)',
-                    opacity: isUnlocked ? 1 : 0.35,
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease',
-                    boxShadow: isCurrent ? '0 0 10px rgba(99,102,241,0.1)' : 'none'
-                  }}
-                >
-                  <span style={{ fontSize: '1.3rem', marginBottom: '3px' }}>{isUnlocked ? av.emoji : '🔒'}</span>
-                  <span style={{ 
-                    fontSize: '0.52rem', 
-                    fontWeight: 700, 
-                    color: isCurrent ? 'var(--accent-1)' : 'var(--text-secondary)',
-                    whiteSpace: 'nowrap', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis', 
-                    width: '100%' 
-                  }}>
-                    {av.title}
-                  </span>
+            {/* Color Accent Picker */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                Profile Color Scheme
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {colors.map(col => {
+                  const isSelected = state.avatarColor === col;
+                  return (
+                    <button 
+                      key={col}
+                      onClick={() => updateAvatarColor(col)}
+                      className="color-picker-dot"
+                      style={{ 
+                        width: '26px', height: '26px', borderRadius: '4px', background: col, border: isSelected ? '2px solid white' : '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
+                        transform: isSelected ? 'scale(1.15)' : '',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: isSelected ? `0 0 10px ${col}` : 'none'
+                      }}
+                      title={col}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Start Date Management */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                Course Start Date
+              </label>
+              {activeCourseProgress.startDate ? (
+                <form onSubmit={handleUpdateDate} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="date" 
+                      value={startDateInput}
+                      onChange={(e) => setStartDateInput(e.target.value)}
+                      className="form-input" 
+                      style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
+                      required
+                    />
+                    <button 
+                      type="submit" 
+                      className="btn-primary" 
+                      style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      Save Date
+                    </button>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleResetDate}
+                    className="btn-secondary" 
+                    style={{ width: '100%', fontSize: '0.74rem', padding: '8px 0', border: '1.5px solid #ef4444', color: '#ef4444', background: 'transparent', cursor: 'pointer', fontWeight: 700, borderRadius: '4px' }}
+                  >
+                    Reset Start Date (Remove Enrollment)
+                  </button>
+                </form>
+              ) : (
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '12px', background: 'rgba(255,255,255,0.015)', border: '1px dashed var(--border)', borderRadius: '4px', textAlign: 'center' }}>
+                  No start date set. Enrollment is required to track milestones.
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              )}
+            </div>
 
-        {/* ─── SECTION 5: COMPLETED CURRICULUMS ─── */}
-        <div style={{ marginBottom: '24px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
-          <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-            Completed Curriculums
-          </label>
-          {completedCourses.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {completedCourses.map(c => (
-                <div 
-                  key={c.id} 
-                  style={{ 
-                    display: 'flex', alignItems: 'center', gap: '10px', 
-                    padding: '10px 14px', background: 'rgba(16, 185, 129, 0.05)', 
-                    border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px' 
-                  }}
-                >
-                  <span style={{ fontSize: '1.3rem' }}>🏆</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'white' }}>{c.title}</span>
-                    <span style={{ fontSize: '0.64rem', color: '#10b981', fontWeight: 700 }}>100% Completed · Certificate Active</span>
+          </div>
+          
+          {/* ─── RIGHT COLUMN ─── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Weekly Avatars Showcase */}
+            <div>
+              <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                  Avatar Unlocks
+                </label>
+                <span style={{ fontSize: '0.66rem', color: 'var(--accent-1)', fontWeight: 700 }}>
+                  {completedCount} / {WEEKLY_AVATARS.length - 1} Weeks Done
+                </span>
+              </div>
+              <div 
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(5, 1fr)', 
+                  gap: '6px', 
+                  maxHeight: '140px', 
+                  overflowY: 'auto', 
+                  padding: '8px', 
+                  background: 'rgba(0,0,0,0.25)', 
+                  borderRadius: '4px',
+                  border: '1px solid var(--border)'
+                }}
+              >
+                {WEEKLY_AVATARS.map((av, index) => {
+                  const isUnlocked = index <= completedCount;
+                  const isCurrent = index === completedCount;
+                  return (
+                    <div 
+                      key={index} 
+                      title={isUnlocked ? av.title : `Locked (Complete Week ${index})`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 4px',
+                        borderRadius: '4px',
+                        border: isCurrent ? '1.5px solid var(--accent-1)' : '1px solid rgba(255,255,255,0.04)',
+                        background: isCurrent ? 'rgba(99, 102, 241, 0.08)' : isUnlocked ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.005)',
+                        opacity: isUnlocked ? 1 : 0.35,
+                        textAlign: 'center',
+                        transition: 'all 0.2s ease',
+                        boxShadow: isCurrent ? '0 0 10px rgba(99,102,241,0.1)' : 'none'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.3rem', marginBottom: '3px' }}>{isUnlocked ? av.emoji : '🔒'}</span>
+                      <span style={{ 
+                        fontSize: '0.52rem', 
+                        fontWeight: 700, 
+                        color: isCurrent ? 'var(--accent-1)' : 'var(--text-secondary)',
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        width: '100%' 
+                      }}>
+                        {av.title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Completed Curriculums */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                Completed Curriculums
+              </label>
+              {completedCourses.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {completedCourses.map(c => (
+                    <div 
+                      key={c.id} 
+                      style={{ 
+                        display: 'flex', alignItems: 'center', gap: '10px', 
+                        padding: '10px 14px', background: 'rgba(16, 185, 129, 0.05)', 
+                        border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: '4px' 
+                      }}
+                    >
+                      <span style={{ fontSize: '1.3rem' }}>🏆</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'white' }}>{c.title}</span>
+                        <span style={{ fontSize: '0.64rem', color: '#10b981', fontWeight: 700 }}>100% Completed · Certificate Active</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '12px', background: 'rgba(255,255,255,0.015)', border: '1px dashed var(--border)', borderRadius: '4px', textAlign: 'center' }}>
+                  No completed courses yet. Select a course and track lessons to completion!
+                </div>
+              )}
+            </div>
+
+            {/* Password Changer */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
+              {!isGoogleUser ? (
+                <form onSubmit={handleUpdatePassword}>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    Change Account Password
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <input 
+                      type="password" 
+                      value={currentPw}
+                      onChange={(e) => setCurrentPw(e.target.value)}
+                      className="form-input" 
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
+                      placeholder="Current Password"
+                      required
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input 
+                        type="password" 
+                        value={newPw}
+                        onChange={(e) => setNewPw(e.target.value)}
+                        className="form-input" 
+                        style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
+                        placeholder="New Password (min 6 chars)"
+                        required
+                      />
+                      <button 
+                        type="submit" 
+                        className="btn-secondary" 
+                        style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              ) : (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                    Account Security
+                  </label>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.015)', border: '1px solid var(--border)', padding: '12px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}>
+                    <span>🔒</span>
+                    <span>Authenticated via Google. Manage security settings on your Google Account Dashboard.</span>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '12px', background: 'rgba(255,255,255,0.015)', border: '1px dashed var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              No completed courses yet. Select a course and track lessons to completion!
-            </div>
-          )}
-        </div>
 
-        {/* ─── SECTION 6: PASSWORD CHANGER / SECURITY ─── */}
-        <div style={{ marginBottom: '28px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '16px' }}>
-          {!isGoogleUser ? (
-            <form onSubmit={handleUpdatePassword}>
-              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                Change Account Password
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <input 
-                  type="password" 
-                  value={currentPw}
-                  onChange={(e) => setCurrentPw(e.target.value)}
-                  className="form-input" 
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
-                  placeholder="Current Password"
-                  required
-                />
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input 
-                    type="password" 
-                    value={newPw}
-                    onChange={(e) => setNewPw(e.target.value)}
-                    className="form-input" 
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)', color: 'white' }}
-                    placeholder="New Password (min 6 chars)"
-                    required
-                  />
-                  <button 
-                    type="submit" 
-                    className="btn-secondary" 
-                    style={{ fontSize: '0.74rem', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
-                  >
-                    Change
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            <div>
-              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                Account Security
-              </label>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.015)', border: '1px solid var(--border)', padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}>
-                <span>🔒</span>
-                <span>Authenticated via Google. Manage security settings on your Google Account Dashboard.</span>
-              </div>
-            </div>
-          )}
+          </div>
+
         </div>
 
         <button 
           onClick={onClose}
           className="btn-primary" 
-          style={{ width: '100%', padding: '10px 0', fontSize: '0.82rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s ease', background: 'var(--accent-grad)', border: 'none', color: 'white' }}
+          style={{ width: '100%', padding: '10px 0', fontSize: '0.82rem', borderRadius: '4px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s ease', background: 'var(--accent-grad)', border: 'none', color: 'white', marginTop: '24px' }}
         >
           Save & Exit Settings
         </button>
