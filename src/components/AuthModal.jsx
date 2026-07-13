@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRoadmap } from '../context/RoadmapContext.jsx';
-import { auth, hasFirebaseCredentials } from '../services/firebaseConfig.js';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { auth, googleProvider, hasFirebaseCredentials } from '../services/firebaseConfig.js';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
 export default function AuthModal() {
   const { reloadSession } = useRoadmap();
@@ -81,6 +81,24 @@ export default function AuthModal() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    if (hasFirebaseCredentials && auth && googleProvider) {
+      try {
+        await signInWithPopup(auth, googleProvider);
+        setSuccessMsg("👋 Signed in successfully with Google! Welcome.");
+        setTimeout(() => reloadSession(), 100);
+      } catch (err) {
+        console.error(err);
+        setErrorMsg(`❌ Google Auth error: ${err.message}`);
+      }
+    } else {
+      setErrorMsg("⚠️ Google Auth is not available in local guest mode. Please configure your Firebase environment variables first.");
+    }
+  };
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(5, 8, 16, 0.85)', backdropFilter: 'blur(12px)', display: 'grid', placeItems: 'center', zIndex: 10000 }}>
       <div 
@@ -93,7 +111,7 @@ export default function AuthModal() {
       >
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '8px' }}>⚡</span>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white', margin: 0 }}>VeloceCode Platform</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white', margin: 0 }}>VeloceCode</h2>
           <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
             {isLogin ? 'Sign in to sync your professional developer logs' : 'Register a free profile to track your curriculum checkoffs'}
           </p>
@@ -183,6 +201,31 @@ export default function AuthModal() {
           </button>
 
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '10px' }}>
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border)', opacity: 0.3 }} />
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>or</span>
+          <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border)', opacity: 0.3 }} />
+        </div>
+
+        <button 
+          type="button" 
+          onClick={handleGoogleSignIn}
+          className="btn-secondary" 
+          style={{ 
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', 
+            padding: '10px 0', fontSize: '0.82rem', background: 'rgba(255,255,255,0.03)', 
+            border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '6px', cursor: 'pointer' 
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 48 48" style={{ display: 'block' }}>
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.75H24v9h12.75C34.9 33.9 30.2 38.5 24 38.5c-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48c12.75 0 23.27-10.3 23.27-24z"/>
+            <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+            <path fill="#34A853" d="M24 38.5c6.26 0 11.57-4.22 13.46-9.91l7.98 6.19C41.49 42.62 33.38 48 24 48c-9.38 0-17.49-5.38-21.44-13.22l7.98-6.19c1.89 5.69 7.2 9.91 13.46 9.91z"/>
+          </svg>
+          Continue with Google
+        </button>
 
       </div>
     </div>
