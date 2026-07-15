@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRoadmap } from '../context/RoadmapContext.jsx';
 import { getCourseCurriculum } from '../content/courses.js';
 import { formatResourceLabel } from '../utils/date.js';
@@ -10,6 +10,7 @@ export default function FocusJournalView() {
     saveDailyLog, 
     showConfirm,
     toggleTask,
+    showToast,
     // Timer values from context
     timerMinutes,
     timerSeconds,
@@ -88,18 +89,36 @@ export default function FocusJournalView() {
     };
   };
 
-  const activeLog = getLogForDate(selectedDate);
+  // Local state for the selected date's log
+  const [localLog, setLocalLog] = useState(() => getLogForDate(selectedDate));
+  
+  // When selectedDate changes, update local state
+  useEffect(() => {
+    setLocalLog(getLogForDate(selectedDate));
+  }, [selectedDate]);
+
+  // Keep focusMinutes synced from context in case the timer completes in the background
+  const contextLog = getLogForDate(selectedDate);
+  useEffect(() => {
+    setLocalLog(prev => ({
+      ...prev,
+      focusMinutes: contextLog.focusMinutes
+    }));
+  }, [contextLog.focusMinutes]);
 
   const toggleChecklist = (field) => {
-    saveDailyLog(selectedDate, {
-      [field]: !activeLog[field]
-    });
+    setLocalLog(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
 
   const handleNotesChange = (e) => {
-    saveDailyLog(selectedDate, {
-      notes: e.target.value
-    });
+    const val = e.target.value;
+    setLocalLog(prev => ({
+      ...prev,
+      notes: val
+    }));
   };
 
   const insertMarkdownHelper = (prefix, suffix) => {
@@ -114,14 +133,32 @@ export default function FocusJournalView() {
 
     const updatedText = text.substring(0, start) + replacement + text.substring(end);
     
-    saveDailyLog(selectedDate, {
+    setLocalLog(prev => ({
+      ...prev,
       notes: updatedText
-    });
+    }));
 
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + prefix.length, start + prefix.length + (selected || 'text').length);
     }, 10);
+  };
+
+  const handleSubmitDay = () => {
+    // Save to context/database
+    saveDailyLog(selectedDate, localLog);
+
+    // Play confetti animation applauding completion
+    import('canvas-confetti').then((module) => {
+      const confetti = module.default;
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }).catch(e => console.error("Failed to load canvas-confetti:", e));
+
+    showToast("🎉 Daily journal submitted! Progress updated in real-time.", "success");
   };
 
   const changeSelectedDay = (offset) => {
@@ -337,7 +374,7 @@ export default function FocusJournalView() {
 
             <div className="journal-check-grid">
               
-              <div onClick={() => toggleChecklist('learned')} className={`journal-check-card ${activeLog.learned ? 'checked' : ''}`}>
+              <div onClick={() => toggleChecklist('learned')} className={`journal-check-card ${localLog.learned ? 'checked' : ''}`}>
                 <div className="journal-check-card-info">
                   <div className="journal-check-card-indicator"></div>
                   <span className="journal-check-card-title">Studied roadmap core deliverables for 1+ hours</span>
@@ -345,7 +382,7 @@ export default function FocusJournalView() {
                 <span className="journal-check-card-xp">+10 XP</span>
               </div>
 
-              <div onClick={() => toggleChecklist('coded')} className={`journal-check-card ${activeLog.coded ? 'checked' : ''}`}>
+              <div onClick={() => toggleChecklist('coded')} className={`journal-check-card ${localLog.coded ? 'checked' : ''}`}>
                 <div className="journal-check-card-info">
                   <div className="journal-check-card-indicator"></div>
                   <span className="journal-check-card-title">Wrote code for at least 2 hours</span>
@@ -353,7 +390,7 @@ export default function FocusJournalView() {
                 <span className="journal-check-card-xp">+15 XP</span>
               </div>
 
-              <div onClick={() => toggleChecklist('dsa')} className={`journal-check-card ${activeLog.dsa ? 'checked' : ''}`}>
+              <div onClick={() => toggleChecklist('dsa')} className={`journal-check-card ${localLog.dsa ? 'checked' : ''}`}>
                 <div className="journal-check-card-info">
                   <div className="journal-check-card-indicator"></div>
                   <span className="journal-check-card-title">Solved LeetCode / DSA problem</span>
@@ -361,7 +398,7 @@ export default function FocusJournalView() {
                 <span className="journal-check-card-xp">+20 XP</span>
               </div>
 
-              <div onClick={() => toggleChecklist('commit')} className={`journal-check-card ${activeLog.commit ? 'checked' : ''}`}>
+              <div onClick={() => toggleChecklist('commit')} className={`journal-check-card ${localLog.commit ? 'checked' : ''}`}>
                 <div className="journal-check-card-info">
                   <div className="journal-check-card-indicator"></div>
                   <span className="journal-check-card-title">Made a Git commit (NON-NEGOTIABLE)</span>
@@ -369,7 +406,7 @@ export default function FocusJournalView() {
                 <span className="journal-check-card-xp">+10 XP</span>
               </div>
 
-              <div onClick={() => toggleChecklist('review')} className={`journal-check-card ${activeLog.review ? 'checked' : ''}`}>
+              <div onClick={() => toggleChecklist('review')} className={`journal-check-card ${localLog.review ? 'checked' : ''}`}>
                 <div className="journal-check-card-info">
                   <div className="journal-check-card-indicator"></div>
                   <span className="journal-check-card-title">Completed end-of-day review</span>
@@ -395,11 +432,31 @@ export default function FocusJournalView() {
             <textarea 
               id="log-notes-input"
               rows="6"
-              value={activeLog.notes}
+              value={localLog.notes}
               onChange={handleNotesChange}
               placeholder="Log what you learned today, resources referred, blocker items resolved..."
-              style={{ width: '100%', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '12px', fontSize: '0.8rem', outline: 'none' }}
+              style={{ width: '100%', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '12px', fontSize: '0.8rem', outline: 'none', marginBottom: '16px' }}
             />
+
+            {/* Complete & Submit Day Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={handleSubmitDay}
+                className="btn-primary" 
+                style={{ 
+                  padding: '12px 30px', 
+                  fontSize: '0.85rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
+                  border: 'none'
+                }}
+              >
+                <span>💾</span> Submit & Complete Day
+              </button>
+            </div>
           </div>
 
         </div>
@@ -458,7 +515,7 @@ export default function FocusJournalView() {
             </div>
 
             <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              Completed sessions log focus hours to your database log: <strong style={{ color: 'var(--success)' }}>{activeLog.focusMinutes} minutes today</strong>.
+              Completed sessions log focus hours to your database log: <strong style={{ color: 'var(--success)' }}>{localLog.focusMinutes} minutes today</strong>.
             </div>
           </div>
 
