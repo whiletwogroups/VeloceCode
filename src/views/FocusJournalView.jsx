@@ -209,6 +209,104 @@ export default function FocusJournalView() {
         {/* LEFT PANEL: Tasks, Checklists & Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
+          {/* Daily Checklist (Styled with premium check-card rules from index.css) */}
+          <div className="card" style={{ padding: '22px' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 style={{ fontSize: '0.925rem', fontWeight: 800 }}>📋 Daily Checklist</h3>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', padding: '2px 6px', borderRadius: '20px' }}>
+                <button className="btn-secondary" onClick={() => changeSelectedDay(-1)} style={{ border: 'none', background: 'transparent', padding: '2px 8px', fontSize: '0.65rem' }}>◀ Prev</button>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, background: 'var(--accent-grad)', padding: '2px 10px', borderRadius: '20px', color: 'white' }}>{selectedDate}</span>
+                <button className="btn-secondary" onClick={() => changeSelectedDay(1)} style={{ border: 'none', background: 'transparent', padding: '2px 8px', fontSize: '0.65rem' }}>Next ▶</button>
+              </div>
+            </div>
+
+            <div className="journal-check-grid">
+              
+              <div onClick={() => toggleChecklist('learned')} className={`journal-check-card ${localLog.learned ? 'checked' : ''}`}>
+                <div className="journal-check-card-info">
+                  <div className="journal-check-card-indicator"></div>
+                  <span className="journal-check-card-title">Studied roadmap core deliverables for 1+ hours</span>
+                </div>
+                <span className="journal-check-card-xp">+10 XP</span>
+              </div>
+
+              <div onClick={() => toggleChecklist('coded')} className={`journal-check-card ${localLog.coded ? 'checked' : ''}`}>
+                <div className="journal-check-card-info">
+                  <div className="journal-check-card-indicator"></div>
+                  <span className="journal-check-card-title">Wrote code for at least 2 hours</span>
+                </div>
+                <span className="journal-check-card-xp">+15 XP</span>
+              </div>
+
+              <div onClick={() => toggleChecklist('dsa')} className={`journal-check-card ${localLog.dsa ? 'checked' : ''}`}>
+                <div className="journal-check-card-info">
+                  <div className="journal-check-card-indicator"></div>
+                  <span className="journal-check-card-title">Solved LeetCode / DSA problem</span>
+                </div>
+                <span className="journal-check-card-xp">+20 XP</span>
+              </div>
+
+              <div onClick={() => toggleChecklist('commit')} className={`journal-check-card ${localLog.commit ? 'checked' : ''}`}>
+                <div className="journal-check-card-info">
+                  <div className="journal-check-card-indicator"></div>
+                  <span className="journal-check-card-title">Made a Git commit (NON-NEGOTIABLE)</span>
+                </div>
+                <span className="journal-check-card-xp">+10 XP</span>
+              </div>
+
+              <div onClick={() => toggleChecklist('review')} className={`journal-check-card ${localLog.review ? 'checked' : ''}`}>
+                <div className="journal-check-card-info">
+                  <div className="journal-check-card-indicator"></div>
+                  <span className="journal-check-card-title">Completed end-of-day review</span>
+                </div>
+                <span className="journal-check-card-xp">+10 XP</span>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Notes Area Editor */}
+          <div className="card" style={{ padding: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800 }}>Journal Notes</span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button onClick={() => insertMarkdownHelper('**', '**')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>B</button>
+                <button onClick={() => insertMarkdownHelper('*', '*')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>I</button>
+                <button onClick={() => insertMarkdownHelper('`', '`')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Code</button>
+                <button onClick={() => insertMarkdownHelper('```\n', '\n```')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Block</button>
+              </div>
+            </div>
+
+            <textarea 
+              id="log-notes-input"
+              rows="6"
+              value={localLog.notes}
+              onChange={handleNotesChange}
+              placeholder="Log what you learned today, resources referred, blocker items resolved..."
+              style={{ width: '100%', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '12px', fontSize: '0.8rem', outline: 'none', marginBottom: '16px' }}
+            />
+
+            {/* Complete & Submit Day Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={handleSubmitDay}
+                className="btn-primary" 
+                style={{ 
+                  padding: '12px 30px', 
+                  fontSize: '0.85rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
+                  border: 'none'
+                }}
+              >
+                <span>💾</span> Submit & Complete Day
+              </button>
+            </div>
+          </div>
+
           {/* DAILY CURRICULUM TARGETS (Rendered similar to before migration) */}
           {currentDayData ? (
             <div className="card" style={{ padding: '22px' }}>
@@ -360,104 +458,6 @@ export default function FocusJournalView() {
               </p>
             </div>
           )}
-
-          {/* Daily Checklist (Styled with premium check-card rules from index.css) */}
-          <div className="card" style={{ padding: '22px' }}>
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-              <h3 style={{ fontSize: '0.925rem', fontWeight: 800 }}>📋 Daily Checklist</h3>
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', padding: '2px 6px', borderRadius: '20px' }}>
-                <button className="btn-secondary" onClick={() => changeSelectedDay(-1)} style={{ border: 'none', background: 'transparent', padding: '2px 8px', fontSize: '0.65rem' }}>◀ Prev</button>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, background: 'var(--accent-grad)', padding: '2px 10px', borderRadius: '20px', color: 'white' }}>{selectedDate}</span>
-                <button className="btn-secondary" onClick={() => changeSelectedDay(1)} style={{ border: 'none', background: 'transparent', padding: '2px 8px', fontSize: '0.65rem' }}>Next ▶</button>
-              </div>
-            </div>
-
-            <div className="journal-check-grid">
-              
-              <div onClick={() => toggleChecklist('learned')} className={`journal-check-card ${localLog.learned ? 'checked' : ''}`}>
-                <div className="journal-check-card-info">
-                  <div className="journal-check-card-indicator"></div>
-                  <span className="journal-check-card-title">Studied roadmap core deliverables for 1+ hours</span>
-                </div>
-                <span className="journal-check-card-xp">+10 XP</span>
-              </div>
-
-              <div onClick={() => toggleChecklist('coded')} className={`journal-check-card ${localLog.coded ? 'checked' : ''}`}>
-                <div className="journal-check-card-info">
-                  <div className="journal-check-card-indicator"></div>
-                  <span className="journal-check-card-title">Wrote code for at least 2 hours</span>
-                </div>
-                <span className="journal-check-card-xp">+15 XP</span>
-              </div>
-
-              <div onClick={() => toggleChecklist('dsa')} className={`journal-check-card ${localLog.dsa ? 'checked' : ''}`}>
-                <div className="journal-check-card-info">
-                  <div className="journal-check-card-indicator"></div>
-                  <span className="journal-check-card-title">Solved LeetCode / DSA problem</span>
-                </div>
-                <span className="journal-check-card-xp">+20 XP</span>
-              </div>
-
-              <div onClick={() => toggleChecklist('commit')} className={`journal-check-card ${localLog.commit ? 'checked' : ''}`}>
-                <div className="journal-check-card-info">
-                  <div className="journal-check-card-indicator"></div>
-                  <span className="journal-check-card-title">Made a Git commit (NON-NEGOTIABLE)</span>
-                </div>
-                <span className="journal-check-card-xp">+10 XP</span>
-              </div>
-
-              <div onClick={() => toggleChecklist('review')} className={`journal-check-card ${localLog.review ? 'checked' : ''}`}>
-                <div className="journal-check-card-info">
-                  <div className="journal-check-card-indicator"></div>
-                  <span className="journal-check-card-title">Completed end-of-day review</span>
-                </div>
-                <span className="journal-check-card-xp">+10 XP</span>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Notes Area Editor */}
-          <div className="card" style={{ padding: '22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 800 }}>Journal Notes</span>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button onClick={() => insertMarkdownHelper('**', '**')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>B</button>
-                <button onClick={() => insertMarkdownHelper('*', '*')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>I</button>
-                <button onClick={() => insertMarkdownHelper('`', '`')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Code</button>
-                <button onClick={() => insertMarkdownHelper('```\n', '\n```')} style={{ fontSize: '11px', padding: '2px 8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}>Block</button>
-              </div>
-            </div>
-
-            <textarea 
-              id="log-notes-input"
-              rows="6"
-              value={localLog.notes}
-              onChange={handleNotesChange}
-              placeholder="Log what you learned today, resources referred, blocker items resolved..."
-              style={{ width: '100%', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '12px', fontSize: '0.8rem', outline: 'none', marginBottom: '16px' }}
-            />
-
-            {/* Complete & Submit Day Button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                onClick={handleSubmitDay}
-                className="btn-primary" 
-                style={{ 
-                  padding: '12px 30px', 
-                  fontSize: '0.85rem', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
-                  border: 'none'
-                }}
-              >
-                <span>💾</span> Submit & Complete Day
-              </button>
-            </div>
-          </div>
 
         </div>
 
