@@ -5,7 +5,7 @@ import { QUOTES } from '../content/quotes.js';
 import { PROJECTS } from '../content/projects.js';
 
 export default function DashboardView({ navigateToView }) {
-  const { activeCourseId, activeCourseProgress, state } = useRoadmap();
+  const { activeCourseId, activeCourseProgress, state, saveDailyLog } = useRoadmap();
   
   const courseMeta = COURSES.find(c => c.id === activeCourseId) || COURSES[0];
   const curriculum = getCourseCurriculum(activeCourseId);
@@ -326,7 +326,11 @@ export default function DashboardView({ navigateToView }) {
                   key={i} 
                   className={`commit-cell ${cellClass}`}
                   title={`${key}: ${log?.commit ? 'Commit Logged' : 'No activity'}`}
-                  style={{ width: '100%', aspectRatio: '1', borderRadius: '2px' }}
+                  style={{ width: '100%', aspectRatio: '1', borderRadius: '2px', cursor: 'pointer' }}
+                  onClick={() => {
+                    const currentVal = log?.commit || false;
+                    saveDailyLog(key, { commit: !currentVal });
+                  }}
                 />
               );
             })}

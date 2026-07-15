@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { COURSES, getCourseCurriculum } from '../content/courses.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { auth, db, hasFirebaseCredentials } from '../services/firebaseConfig.js';
@@ -25,6 +25,19 @@ export const RoadmapProvider = ({ children }) => {
 
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
   const [dialog, setDialog] = useState({ show: false, title: '', message: '', onConfirm: null, confirmOnly: false });
+
+  // ─── Pomodoro Timer State ───
+  const [timerMinutes, setTimerMinutes] = useState(25);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerLabel, setTimerLabel] = useState('Focus');
+  const [ambientSound, setAmbientSound] = useState('none');
+  const [timerVolume, setTimerVolume] = useState(0.04);
+
+  const timerIntervalRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const audioSourceRef = useRef(null);
+  const gainNodeRef = useRef(null);
 
   const showToast = (message, type = 'info') => {
     setToast({ show: true, message, type });
@@ -484,6 +497,198 @@ export const RoadmapProvider = ({ children }) => {
     }
   };
 
+  const stopAmbientNoise = () => {
+    if (audioSourceRef.current) {
+      try { audioSourceRef.current.stop(); } catch(e){}
+      audioSourceRef.current = null;
+    }
+    if (audioCtxRef.current) {
+      try { audioCtxRef.current.close(); } catch(e){}
+      audioCtxRef.current = null;
+    }
+  };
+
+  const startAmbientNoise = (type, vol) => {
+    stopAmbientNoise();
+    if (type === 'none') return;
+
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      audioCtxRef.current = ctx;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.connect(ctx.destination);
+      gainNodeRef.current = gain;
+
+      if (type === 'white' || type === 'rain') {
+        const bufferSize = 2 * ctx.sampleRate;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0.0;
+
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          if (type === 'white') {
+            data[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = data[i];
+            data[i] *= 3.5;
+          } else {
+            data[i] = (lastOut + (0.12 * white)) / 1.12;
+            lastOut = data[i];
+            data[i] *= 1.5;
+          }
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.connect(gain);
+        source.start();
+        audioSourceRef.current = source;
+      } else if (type === 'synth') {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(110.0, ctx.currentTime);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(110.5, ctx.currentTime);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(200, ctx.currentTime);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+
+        osc1.start();
+        osc2.start();
+
+        audioSourceRef.current = {
+          stop: () => {
+            try { osc1.stop(); osc2.stop(); } catch(e){}
+          }
+        };
+      }
+    } catch(e) {
+      console.warn("Failed to initialize audio context:", e);
+    }
+  };
+
+  const playCompletionChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const playTone = (freq, time, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        gain.gain.setValueAtTime(0.15, time);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+      };
+      playTone(523.25, ctx.currentTime, 0.4);
+      playTone(659.25, ctx.currentTime + 0.15, 0.4);
+      playTone(783.99, ctx.currentTime + 0.3, 0.6);
+    } catch (e) {}
+  };
+
+  const changeTimerDuration = (mins, label) => {
+    pauseTimer();
+    setTimerMinutes(mins);
+    setTimerSeconds(0);
+    setTimerLabel(label);
+  };
+
+  const startTimer = () => {
+    if (isTimerRunning) return;
+    setIsTimerRunning(true);
+
+    if (ambientSound !== 'none') {
+      startAmbientNoise(ambientSound, timerVolume);
+    }
+
+    let totalSecs = timerMinutes * 60 + timerSeconds;
+    const initialDurationMins = Math.round((timerMinutes * 60 + timerSeconds) / 60);
+
+    timerIntervalRef.current = setInterval(() => {
+      totalSecs--;
+      if (totalSecs <= 0) {
+        clearInterval(timerIntervalRef.current);
+        setIsTimerRunning(false);
+        setTimerMinutes(0);
+        setTimerSeconds(0);
+        playCompletionChime();
+        stopAmbientNoise();
+
+        // Log study minutes to daily logs
+        const todayKey = new Date().toISOString().split('T')[0];
+        const activeProgress = getActiveCourseProgress();
+        const currentMins = activeProgress.dailyLogs[todayKey]?.focusMinutes || 0;
+        
+        saveDailyLog(todayKey, {
+          focusMinutes: currentMins + initialDurationMins
+        });
+
+        showConfirm(
+          "⏱️ Focus Session Completed!",
+          `Awesome work! You completed a ${initialDurationMins} minutes study block, which has been automatically logged. Keep grinding!`,
+          () => {},
+          true
+        );
+      } else {
+        setTimerMinutes(Math.floor(totalSecs / 60));
+        setTimerSeconds(totalSecs % 60);
+      }
+    }, 1000);
+  };
+
+  const pauseTimer = () => {
+    setIsTimerRunning(false);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    stopAmbientNoise();
+  };
+
+  const resetTimer = () => {
+    pauseTimer();
+    setTimerMinutes(25);
+    setTimerSeconds(0);
+    setTimerLabel('Focus');
+  };
+
+  const handleSetAmbientSound = (val) => {
+    setAmbientSound(val);
+    if (isTimerRunning) {
+      startAmbientNoise(val, timerVolume);
+    } else {
+      stopAmbientNoise();
+    }
+  };
+
+  // Update volume dynamically
+  useEffect(() => {
+    if (gainNodeRef.current && audioCtxRef.current) {
+      gainNodeRef.current.gain.setValueAtTime(timerVolume, audioCtxRef.current.currentTime);
+    }
+  }, [timerVolume]);
+
+  // Clean up timer interval on unmount of the Provider
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      stopAmbientNoise();
+    };
+  }, []);
+
   return (
     <RoadmapContext.Provider
       value={{
@@ -513,7 +718,20 @@ export const RoadmapProvider = ({ children }) => {
         updateUsername,
         updatePassword,
         updateStartDate,
-        reloadSession: () => loadActiveState(currentUser)
+        reloadSession: () => loadActiveState(currentUser),
+        // Timer values
+        timerMinutes,
+        timerSeconds,
+        isTimerRunning,
+        timerLabel,
+        ambientSound,
+        timerVolume,
+        setTimerVolume,
+        startTimer,
+        pauseTimer,
+        resetTimer,
+        changeTimerDuration,
+        setAmbientSound: handleSetAmbientSound
       }}
     >
       {!loading && children}

@@ -1,0 +1,41 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  transition: background-color var(--transition), color var(--transition);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* Ambient Background Orbs */
+.bg-grid-overlay {
+  position: fixed; inset: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none; z-index: 0; opacity: 0.8;
+}
+.bg-gradient-orb-1 {
+  position: fixed; top: -10%; left: -10%; width: 50%; height: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  filter: blur(80px); pointer-events: none; z-index: 0;
+  animation: orbFloat 20s ease-in-out infinite alternate;
+}
+.bg-gradient-orb-2 {
+  position: fixed; bottom: -10%; right: -10%; width: 50%; height: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+  filter: blur(80px); pointer-events: none; z-index: 0;
+  animation: orbFloat 25s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(4%, 6%) scale(1.15); }
+  100% { transform: translate(-2%, -4%) scale(0.9); }
+}

@@ -33,7 +33,7 @@ export default function App() {
     getWeeklyAvatar
   } = useRoadmap();
 
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState(() => localStorage.getItem('vlc_current_view') || 'dashboard');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -128,8 +128,10 @@ export default function App() {
         true // confirmOnly
       );
       setCurrentView('catalog');
+      localStorage.setItem('vlc_current_view', 'catalog');
     } else {
       setCurrentView(viewId);
+      localStorage.setItem('vlc_current_view', viewId);
     }
   };
 
